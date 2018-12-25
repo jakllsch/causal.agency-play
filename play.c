@@ -148,6 +148,7 @@ static void draw(size_t new) {
 int main(void) {
 	struct Score new = { .date = time(NULL) };
 	new.score = play2048();
+
 	FILE *file = scoresOpen("2048.scores");
 	scoresRead(file);
 	size_t index = scoresInsert(new);
@@ -168,4 +169,9 @@ int main(void) {
 	curs_set(0);
 	getch();
 	endwin();
+
+	printf(
+		"This program is AGPLv3 Free Software!\n"
+		"Code is available from <https://code.causal.agency/june/play>.\n"
+	);
 }
