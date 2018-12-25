@@ -186,6 +186,8 @@ enum {
 	GridX = 2,
 	ScoreY = 0,
 	ScoreX = GridX + 4 * TileWidth - 10,
+	HelpY = GridY,
+	HelpX = GridX + 5 * TileWidth,
 };
 
 static void drawTile(uint y, uint x) {
@@ -225,6 +227,12 @@ static void draw(void) {
 	}
 }
 
+static void drawHelp(void) {
+	mvaddstr(HelpY + 0, HelpX, "Use the arrow keys to");
+	mvaddstr(HelpY + 1, HelpX, "slide and merge tiles.");
+	mvaddstr(HelpY + 2, HelpX, "Press q to quit.");
+}
+
 static bool input(void) {
 	switch (getch()) {
 		break; case 'h': case KEY_LEFT: if (left()) spawn();
@@ -240,7 +248,10 @@ uint play2048(void) {
 	curse();
 	spawn();
 	spawn();
+	drawHelp();
+	uint help = 0;
 	do {
+		if (help++ == 3) erase();
 		draw();
 	} while (input());
 	return score;
