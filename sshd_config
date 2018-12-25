@@ -1,0 +1,13 @@
+UsePAM no
+
+Match User play
+	PasswordAuthentication yes
+	PermitEmptyPasswords yes
+	ChrootDirectory /home/play
+	ForceCommand play
+
+	AllowAgentForwarding no
+	AllowTcpForwarding no
+	AllowStreamLocalForwarding no
+	MaxSessions 1
+	X11Forwarding no
