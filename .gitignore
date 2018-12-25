@@ -1,4 +1,5 @@
 *.o
 2048.scores
+config.mk
 play
 tags
