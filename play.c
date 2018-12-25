@@ -37,7 +37,7 @@ static struct Score {
 } scores[ScoresLen];
 
 static FILE *scoresOpen(const char *path) {
-	int fd = open(path, O_RDWR | O_CREAT);
+	int fd = open(path, O_RDWR | O_CREAT, 0644);
 	if (fd < 0) err(EX_CANTCREAT, "%s", path);
 	FILE *file = fdopen(fd, "r+");
 	if (!file) err(EX_CANTCREAT, "%s", path);
