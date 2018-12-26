@@ -164,6 +164,9 @@ int main(void) {
 	if (index < ScoresLen) {
 		attr_set(A_BOLD, 0, NULL);
 		getnstr(new.name, sizeof(new.name) - 1);
+		for (char *ch = new.name; *ch; ++ch) {
+			if (*ch < ' ') *ch = ' ';
+		}
 
 		scoresLock(file);
 		scoresRead(file);
