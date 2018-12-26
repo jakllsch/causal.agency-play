@@ -89,12 +89,6 @@ static void curse(void) {
 	erase();
 }
 
-static void addchn(char ch, uint n) {
-	for (uint i = 0; i < n; ++i) {
-		addch(ch);
-	}
-}
-
 enum {
 	ScoresTop = 15,
 	ScoresY = 0,
@@ -106,43 +100,55 @@ enum {
 };
 static const char ScoresTitle[] = "TOP SCORES";
 
-static int scoreY(size_t i) {
-	if (i < ScoresTop) return ScoresY + 2 + i;
-	return ScoresY + 3 + ScoresTop;
-}
-
-static void drawScore(size_t i) {
+static void drawScore(int y, size_t i) {
 	char buf[11];
 	snprintf(buf, sizeof(buf), "%3zu.", 1 + i);
-	mvaddstr(scoreY(i), ScoresX, buf);
+	mvaddstr(y, ScoresX, buf);
 
 	snprintf(buf, sizeof(buf), "%10d", scores[i].score);
-	mvaddstr(scoreY(i), ScoreX, buf);
+	mvaddstr(y, ScoreX, buf);
 
-	mvaddstr(scoreY(i), NameX, scores[i].name);
+	mvaddstr(y, NameX, scores[i].name);
 
 	struct tm *time = localtime(&scores[i].date);
 	if (!time) err(EX_SOFTWARE, "localtime");
 	char date[sizeof("YYYY-MM-DD")];
 	strftime(date, sizeof(date), "%F", time);
-	mvaddstr(scoreY(i), DateX, date);
+	mvaddstr(y, DateX, date);
 }
 
 static void draw(size_t new) {
-	move(ScoresY, ScoresX + (ScoresWidth - sizeof(ScoresTitle) + 2) / 2);
-	addstr(ScoresTitle);
-	move(ScoresY + 1, ScoresX);
-	addchn('=', ScoresWidth);
+	mvaddstr(
+		ScoresY, ScoresX + (ScoresWidth - sizeof(ScoresTitle) + 2) / 2,
+		ScoresTitle
+	);
+	mvhline(ScoresY + 1, ScoresX, '=', ScoresWidth);
+
+	int newY;
 	for (size_t i = 0; i < ScoresTop; ++i) {
 		if (!scores[i].score) break;
+		if (i == new) newY = ScoresY + 2 + i;
 		attr_set(i == new ? A_BOLD : A_NORMAL, 0, NULL);
-		drawScore(i);
+		drawScore(ScoresY + 2 + i, i);
 	}
 	if (new == ScoresLen) return;
+
 	if (new >= ScoresTop) {
+		newY = ScoresY + ScoresTop + 5;
+		mvhline(newY - 3, ScoresX, '=', ScoresWidth);
+		drawScore(newY - 2, new - 2);
+		drawScore(newY - 1, new - 1);
 		attr_set(A_BOLD, 0, NULL);
-		drawScore(new);
+		drawScore(newY, new);
+		attr_set(A_NORMAL, 0, NULL);
+		if (new + 1 < ScoresLen && scores[new + 1].score) {
+			drawScore(newY + 1, new + 1);
+		}
+		if (new + 2 < ScoresLen && scores[new + 2].score) {
+			drawScore(newY + 2, new + 2);
+		}
 	}
+	move(newY, NameX);
 }
 
 int main(void) {
@@ -157,7 +163,7 @@ int main(void) {
 	draw(index);
 	if (index < ScoresLen) {
 		attr_set(A_BOLD, 0, NULL);
-		mvgetnstr(scoreY(index), NameX, new.name, sizeof(new.name) - 1);
+		getnstr(new.name, sizeof(new.name) - 1);
 
 		scoresLock(file);
 		scoresRead(file);
@@ -169,7 +175,6 @@ int main(void) {
 	curs_set(0);
 	getch();
 	endwin();
-
 	printf(
 		"This program is AGPLv3 Free Software!\n"
 		"Code is available from <https://code.causal.agency/june/play>.\n"
