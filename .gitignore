@@ -1,5 +1,7 @@
 *.o
 2048.scores
+chroot.tar
 config.mk
 play
+root/
 tags
