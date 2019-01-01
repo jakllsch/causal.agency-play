@@ -25,6 +25,10 @@
 #include <sysexits.h>
 #include <time.h>
 
+#ifdef __FreeBSD__
+#include <sys/capsicum.h>
+#endif
+
 typedef unsigned uint;
 
 uint play2048(void);
@@ -152,10 +156,25 @@ static void draw(size_t new) {
 }
 
 int main(void) {
-	struct Score new = { .date = time(NULL) };
-	new.score = play2048();
-
+	curse();
 	FILE *file = scoresOpen("2048.scores");
+
+#ifdef __FreeBSD__
+	int error = cap_enter();
+	if (error) err(EX_OSERR, "cap_enter");
+
+	cap_rights_t rights;
+	cap_rights_init(&rights, CAP_READ, CAP_WRITE, CAP_SEEK, CAP_FLOCK);
+
+	error = cap_rights_limit(fileno(file), &rights);
+	if (error) err(EX_OSERR, "cap_rights_limit");
+#endif
+
+	struct Score new = {
+		.date = time(NULL),
+		.score = play2048(),
+	};
+
 	scoresRead(file);
 	size_t index = scoresInsert(new);
 
