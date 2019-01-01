@@ -124,7 +124,7 @@ static void draw(size_t new) {
 	);
 	mvhline(ScoresY + 1, ScoresX, '=', ScoresWidth);
 
-	int newY;
+	int newY = -1;
 	for (size_t i = 0; i < ScoresTop; ++i) {
 		if (!scores[i].score) break;
 		if (i == new) newY = ScoresY + 2 + i;
@@ -175,6 +175,7 @@ int main(void) {
 		fclose(file);
 	}
 
+	noecho();
 	curs_set(0);
 	getch();
 	endwin();

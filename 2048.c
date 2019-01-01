@@ -240,6 +240,7 @@ static bool input(void) {
 		break; case 'k': case KEY_UP: if (up()) spawn();
 		break; case 'l': case KEY_RIGHT: if (right()) spawn();
 		break; case 'q': return false;
+		break; case ERR: exit(EXIT_FAILURE);
 	}
 	return true;
 }
