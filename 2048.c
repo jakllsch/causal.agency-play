@@ -24,6 +24,25 @@ typedef unsigned uint;
 static uint score;
 static uint grid[4][4];
 
+static bool gameOver(void) {
+	for (uint y = 0; y < 4; ++y) {
+		for (uint x = 0; x < 4; ++x) {
+			if (!grid[y][x]) return false;
+		}
+	}
+	for (uint y = 0; y < 4; ++y) {
+		for (uint x = 0; x < 3; ++x) {
+			if (grid[y][x] == grid[y][x + 1]) return false;
+		}
+	}
+	for (uint x = 0; x < 4; ++x) {
+		for (uint y = 0; y < 3; ++y) {
+			if (grid[y][x] == grid[y + 1][x]) return false;
+		}
+	}
+	return true;
+}
+
 static void spawn(void) {
 	uint y, x;
 	do {
@@ -228,9 +247,16 @@ static void draw(void) {
 }
 
 static void drawHelp(void) {
+	attr_set(A_NORMAL, 0, NULL);
 	mvaddstr(HelpY + 0, HelpX, "Use the arrow keys to");
 	mvaddstr(HelpY + 1, HelpX, "slide and merge tiles.");
 	mvaddstr(HelpY + 2, HelpX, "Press q to quit.");
+}
+
+static void drawGameOver(void) {
+	attr_set(A_NORMAL, 0, NULL);
+	mvaddstr(HelpY + 0, HelpX, "Game over! Press q to");
+	mvaddstr(HelpY + 1, HelpX, "view the scoreboard.");
 }
 
 static bool input(void) {
@@ -253,6 +279,7 @@ uint play2048(void) {
 	uint help = 0;
 	do {
 		if (help++ == 3) erase();
+		if (gameOver()) drawGameOver();
 		draw();
 	} while (input());
 	return score;
