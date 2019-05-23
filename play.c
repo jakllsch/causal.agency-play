@@ -94,31 +94,35 @@ static void curse(void) {
 }
 
 enum {
-	ScoresTop = 15,
+	RankWidth = 4,
+	ScoreWidth = 10,
+	NameWidth = 31,
+	DateWidth = 10,
+	ScoresWidth = RankWidth + 2 + ScoreWidth + 2 + NameWidth + 2 + DateWidth,
 	ScoresY = 0,
 	ScoresX = 2,
-	ScoreX = ScoresX + 5,
-	NameX = ScoreX + 12,
-	DateX = NameX + 33,
-	ScoresWidth = DateX + 11 - ScoresX,
+	NameX = ScoresX + RankWidth + 2 + ScoreWidth + 2,
+	ScoresTop = 15,
 };
 static const char ScoresTitle[] = "TOP SCORES";
 
-static void drawScore(int y, size_t i) {
-	char buf[11];
-	snprintf(buf, sizeof(buf), "%3zu.", 1 + i);
-	mvaddstr(y, ScoresX, buf);
-
-	snprintf(buf, sizeof(buf), "%10d", scores[i].score);
-	mvaddstr(y, ScoreX, buf);
-
-	mvaddstr(y, NameX, scores[i].name);
-
+static const char *formatScore(size_t i) {
 	struct tm *time = localtime(&scores[i].date);
 	if (!time) err(EX_SOFTWARE, "localtime");
-	char date[sizeof("YYYY-MM-DD")];
+
+	char date[DateWidth + 1];
 	strftime(date, sizeof(date), "%F", time);
-	mvaddstr(y, DateX, date);
+
+	static char buf[ScoresWidth + 1];
+	snprintf(
+		buf, sizeof(buf),
+		"%*zu. %*u  %-*s  %*s",
+		RankWidth, 1 + i,
+		ScoreWidth, scores[i].score,
+		NameWidth, scores[i].name,
+		DateWidth, date
+	);
+	return buf;
 }
 
 static void draw(size_t new) {
@@ -133,31 +137,48 @@ static void draw(size_t new) {
 		if (!scores[i].score) break;
 		if (i == new) newY = ScoresY + 2 + i;
 		attr_set(i == new ? A_BOLD : A_NORMAL, 0, NULL);
-		drawScore(ScoresY + 2 + i, i);
+		mvaddstr(ScoresY + 2 + i, ScoresX, formatScore(i));
 	}
 	if (new == ScoresLen) return;
 
 	if (new >= ScoresTop) {
 		newY = ScoresY + ScoresTop + 5;
 		mvhline(newY - 3, ScoresX, '=', ScoresWidth);
-		drawScore(newY - 2, new - 2);
-		drawScore(newY - 1, new - 1);
+		mvaddstr(newY - 2, ScoresX, formatScore(new - 2));
+		mvaddstr(newY - 1, ScoresX, formatScore(new - 1));
 		attr_set(A_BOLD, 0, NULL);
-		drawScore(newY, new);
+		mvaddstr(newY, ScoresX, formatScore(new));
 		attr_set(A_NORMAL, 0, NULL);
 		if (new + 1 < ScoresLen && scores[new + 1].score) {
-			drawScore(newY + 1, new + 1);
+			mvaddstr(newY + 1, ScoresX, formatScore(new + 1));
 		}
 		if (new + 2 < ScoresLen && scores[new + 2].score) {
-			drawScore(newY + 2, new + 2);
+			mvaddstr(newY + 2, ScoresX, formatScore(new + 2));
 		}
 	}
 	move(newY, NameX);
 }
 
-int main(void) {
-	curse();
+int main(int argc, char *argv[]) {
 	FILE *file = scoresOpen("2048.scores");
+
+	if (argc > 1 && !strcmp(argv[1], "-t")) {
+		scoresRead(file);
+		printf(
+			"%*s\n",
+			ScoresWidth / 2 + (int)(sizeof(ScoresTitle) + 2) / 2,
+			ScoresTitle
+		);
+		for (uint i = 0; i < ScoresWidth; ++i) putchar('=');
+		putchar('\n');
+		for (size_t i = 0; i < ScoresLen; ++i) {
+			if (!scores[i].score) break;
+			printf("%s\n", formatScore(i));
+		}
+		return EX_OK;
+	}
+
+	curse();
 
 #ifdef __FreeBSD__
 	int error = cap_enter();
