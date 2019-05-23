@@ -217,7 +217,12 @@ int main(int argc, char *argv[]) {
 	draw(index);
 	if (index < ScoresLen) {
 		attr_set(A_BOLD, 0, NULL);
-		getnstr(new.name, sizeof(new.name) - 1);
+		while (!new.name[0]) {
+			int y, x;
+			getyx(stdscr, y, x);
+			getnstr(new.name, sizeof(new.name) - 1);
+			move(y, x);
+		}
 		for (char *ch = new.name; *ch; ++ch) {
 			if (*ch < ' ') *ch = ' ';
 		}
