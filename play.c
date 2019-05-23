@@ -24,6 +24,7 @@
 #include <sys/file.h>
 #include <sysexits.h>
 #include <time.h>
+#include <unistd.h>
 
 #ifdef __FreeBSD__
 #include <sys/capsicum.h>
@@ -160,9 +161,20 @@ static void draw(size_t new) {
 }
 
 int main(int argc, char *argv[]) {
-	FILE *file = scoresOpen("2048.scores");
+	const char *path = NULL;
 
-	if (argc > 1 && !strcmp(argv[1], "-t")) {
+	int opt;
+	while (0 < (opt = getopt(argc, argv, "t:"))) {
+		switch (opt) {
+			break; case 't': path = optarg;
+			break; default:  return EX_USAGE;
+		}
+	}
+
+	if (path) {
+		FILE *file = fopen(path, "r");
+		if (!file) err(EX_NOINPUT, "%s", path);
+
 		scoresRead(file);
 		printf(
 			"%*s\n",
@@ -175,10 +187,12 @@ int main(int argc, char *argv[]) {
 			if (!scores[i].score) break;
 			printf("%s\n", formatScore(i));
 		}
+
 		return EX_OK;
 	}
 
 	curse();
+	FILE *file = scoresOpen("2048.scores");
 
 #ifdef __FreeBSD__
 	int error = cap_enter();
