@@ -1,5 +1,6 @@
 *.o
-2048.scores
+*.scores
+*.weekly
 chroot.tar
 config.mk
 play

@@ -111,7 +111,9 @@ static char board[BoardWidth + 1];
 static char *boardTitle(const char *title) {
 	snprintf(
 		board, sizeof(board),
-		"%*s", (int)(BoardWidth + strlen(title)) / 2, title
+		"%*s%*s",
+		(int)(BoardWidth + strlen(title)) / 2, title,
+		BoardWidth, ""
 	);
 	return board;
 }
@@ -196,7 +198,8 @@ int main(int argc, char *argv[]) {
 	}
 
 	curse();
-	FILE *file = scoresOpen("2048.scores");
+	FILE *top = scoresOpen("2048.scores");
+	FILE *weekly = scoresOpen("2048.weekly");
 
 #ifdef __FreeBSD__
 	int error = cap_enter();
@@ -205,7 +208,10 @@ int main(int argc, char *argv[]) {
 	cap_rights_t rights;
 	cap_rights_init(&rights, CAP_READ, CAP_WRITE, CAP_SEEK, CAP_FLOCK);
 
-	error = cap_rights_limit(fileno(file), &rights);
+	error = cap_rights_limit(fileno(top), &rights);
+	if (error) err(EX_OSERR, "cap_rights_limit");
+
+	error = cap_rights_limit(fileno(weekly), &rights);
 	if (error) err(EX_OSERR, "cap_rights_limit");
 #endif
 
@@ -214,11 +220,12 @@ int main(int argc, char *argv[]) {
 		.score = play2048(),
 	};
 
-	scoresRead(file);
-	size_t index = scoresInsert(new);
-
 	curse();
-	draw("TOP SCORES", index);
+
+	scoresRead(weekly);
+	size_t index = scoresInsert(new);
+	draw("WEEKLY SCORES", index);
+
 	if (index < ScoresLen) {
 		attr_set(A_BOLD, 0, NULL);
 		while (!new.name[0]) {
@@ -231,15 +238,29 @@ int main(int argc, char *argv[]) {
 			if (*ch < ' ') *ch = ' ';
 		}
 
-		scoresLock(file);
-		scoresRead(file);
+		scoresLock(weekly);
+		scoresRead(weekly);
 		scoresInsert(new);
-		scoresWrite(file);
-		fclose(file);
+		scoresWrite(weekly);
+		fclose(weekly);
 	}
 
 	noecho();
 	curs_set(0);
+	getch();
+
+	scoresRead(top);
+	index = scoresInsert(new);
+	draw("TOP SCORES", index);
+
+	if (index < ScoresLen) {
+		scoresLock(top);
+		scoresRead(top);
+		scoresInsert(new);
+		scoresWrite(top);
+		fclose(top);
+	}
+
 	getch();
 	endwin();
 	printf(
