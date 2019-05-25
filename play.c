@@ -99,62 +99,73 @@ enum {
 	ScoreWidth = 10,
 	NameWidth = 31,
 	DateWidth = 10,
-	ScoresWidth = RankWidth + 2 + ScoreWidth + 2 + NameWidth + 2 + DateWidth,
-	ScoresY = 0,
-	ScoresX = 2,
-	NameX = ScoresX + RankWidth + 2 + ScoreWidth + 2,
-	ScoresTop = 15,
+	BoardWidth = RankWidth + 2 + ScoreWidth + 2 + NameWidth + 2 + DateWidth,
+	BoardY = 0,
+	BoardX = 2,
+	NameX = BoardX + RankWidth + 2 + ScoreWidth + 2,
+	BoardLen = 15,
 };
-static const char ScoresTitle[] = "TOP SCORES";
 
-static const char *formatScore(size_t i) {
+static char board[BoardWidth + 1];
+
+static char *boardTitle(const char *title) {
+	snprintf(
+		board, sizeof(board),
+		"%*s", (int)(BoardWidth + strlen(title)) / 2, title
+	);
+	return board;
+}
+
+static char *boardLine(void) {
+	for (uint i = 0; i < BoardWidth; ++i) {
+		board[i] = '=';
+	}
+	board[BoardWidth] = '\0';
+	return board;
+}
+
+static char *boardScore(size_t i) {
 	struct tm *time = localtime(&scores[i].date);
 	if (!time) err(EX_SOFTWARE, "localtime");
-
 	char date[DateWidth + 1];
 	strftime(date, sizeof(date), "%F", time);
-
-	static char buf[ScoresWidth + 1];
 	snprintf(
-		buf, sizeof(buf),
+		board, sizeof(board),
 		"%*zu. %*u  %-*s  %*s",
 		RankWidth, 1 + i,
 		ScoreWidth, scores[i].score,
 		NameWidth, scores[i].name,
 		DateWidth, date
 	);
-	return buf;
+	return board;
 }
 
-static void draw(size_t new) {
-	mvaddstr(
-		ScoresY, ScoresX + (ScoresWidth - sizeof(ScoresTitle) + 2) / 2,
-		ScoresTitle
-	);
-	mvhline(ScoresY + 1, ScoresX, '=', ScoresWidth);
+static void draw(const char *title, size_t new) {
+	mvaddstr(BoardY + 0, BoardX, boardTitle(title));
+	mvaddstr(BoardY + 1, BoardX, boardLine());
 
 	int newY = -1;
-	for (size_t i = 0; i < ScoresTop; ++i) {
+	for (size_t i = 0; i < BoardLen; ++i) {
 		if (!scores[i].score) break;
-		if (i == new) newY = ScoresY + 2 + i;
+		if (i == new) newY = BoardY + 2 + i;
 		attr_set(i == new ? A_BOLD : A_NORMAL, 0, NULL);
-		mvaddstr(ScoresY + 2 + i, ScoresX, formatScore(i));
+		mvaddstr(BoardY + 2 + i, BoardX, boardScore(i));
 	}
 	if (new == ScoresLen) return;
 
-	if (new >= ScoresTop) {
-		newY = ScoresY + ScoresTop + 5;
-		mvhline(newY - 3, ScoresX, '=', ScoresWidth);
-		mvaddstr(newY - 2, ScoresX, formatScore(new - 2));
-		mvaddstr(newY - 1, ScoresX, formatScore(new - 1));
+	if (new >= BoardLen) {
+		newY = BoardY + BoardLen + 5;
+		mvaddstr(newY - 3, BoardX, boardLine());
+		mvaddstr(newY - 2, BoardX, boardScore(new - 2));
+		mvaddstr(newY - 1, BoardX, boardScore(new - 1));
 		attr_set(A_BOLD, 0, NULL);
-		mvaddstr(newY, ScoresX, formatScore(new));
+		mvaddstr(newY, BoardX, boardScore(new));
 		attr_set(A_NORMAL, 0, NULL);
 		if (new + 1 < ScoresLen && scores[new + 1].score) {
-			mvaddstr(newY + 1, ScoresX, formatScore(new + 1));
+			mvaddstr(newY + 1, BoardX, boardScore(new + 1));
 		}
 		if (new + 2 < ScoresLen && scores[new + 2].score) {
-			mvaddstr(newY + 2, ScoresX, formatScore(new + 2));
+			mvaddstr(newY + 2, BoardX, boardScore(new + 2));
 		}
 	}
 	move(newY, NameX);
@@ -174,20 +185,13 @@ int main(int argc, char *argv[]) {
 	if (path) {
 		FILE *file = fopen(path, "r");
 		if (!file) err(EX_NOINPUT, "%s", path);
-
 		scoresRead(file);
-		printf(
-			"%*s\n",
-			ScoresWidth / 2 + (int)(sizeof(ScoresTitle) + 2) / 2,
-			ScoresTitle
-		);
-		for (uint i = 0; i < ScoresWidth; ++i) putchar('=');
-		putchar('\n');
+		printf("%s\n", boardTitle("TOP SCORES"));
+		printf("%s\n", boardLine());
 		for (size_t i = 0; i < ScoresLen; ++i) {
 			if (!scores[i].score) break;
-			printf("%s\n", formatScore(i));
+			printf("%s\n", boardScore(i));
 		}
-
 		return EX_OK;
 	}
 
@@ -214,7 +218,7 @@ int main(int argc, char *argv[]) {
 	size_t index = scoresInsert(new);
 
 	curse();
-	draw(index);
+	draw("TOP SCORES", index);
 	if (index < ScoresLen) {
 		attr_set(A_BOLD, 0, NULL);
 		while (!new.name[0]) {
