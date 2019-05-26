@@ -111,9 +111,8 @@ static char board[BoardWidth + 1];
 static char *boardTitle(const char *title) {
 	snprintf(
 		board, sizeof(board),
-		"%*s%*s",
-		(int)(BoardWidth + strlen(title)) / 2, title,
-		BoardWidth, ""
+		"%*s",
+		(int)(BoardWidth + strlen(title)) / 2, title
 	);
 	return board;
 }
@@ -248,6 +247,7 @@ int main(int argc, char *argv[]) {
 	noecho();
 	curs_set(0);
 	getch();
+	erase();
 
 	scoresRead(top);
 	index = scoresInsert(new);
