@@ -1,5 +1,5 @@
 CHROOT_USER = play
-CHROOT_GROUP = $(CHROOT_USER)
+CHROOT_GROUP = ${CHROOT_USER}
 
 CFLAGS += -std=c11 -Wall -Wextra
 LDFLAGS = -static
@@ -12,8 +12,8 @@ OBJS += 2048.o
 
 all: tags play
 
-play: $(OBJS)
-	$(CC) $(LDFLAGS) $(OBJS) $(LDLIBS) -o $@
+play: ${OBJS}
+	${CC} ${LDFLAGS} ${OBJS} ${LDLIBS} -o $@
 
 tags: *.c
 	ctags -w *.c
@@ -24,14 +24,14 @@ chroot.tar: play
 		root/bin \
 		root/home \
 		root/usr/share/misc
-	install -d -o $(CHROOT_USER) -g $(CHROOT_GROUP) root/home/$(CHROOT_USER)
+	install -d -o ${CHROOT_USER} -g ${CHROOT_GROUP} root/home/${CHROOT_USER}
 	cp -fp /usr/share/misc/termcap.db root/usr/share/misc
 	cp -fp /rescue/sh root/bin
 	install play root/bin
 	tar -c -f chroot.tar -C root bin home usr
 
 clean:
-	rm -fr play $(OBJS) tags chroot.tar root
+	rm -fr play ${OBJS} tags chroot.tar root
 
 install: chroot.tar
-	tar -x -f chroot.tar -C /home/$(CHROOT_USER)
+	tar -x -f chroot.tar -C /home/${CHROOT_USER}
