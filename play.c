@@ -265,6 +265,6 @@ int main(int argc, char *argv[]) {
 	endwin();
 	printf(
 		"This program is AGPLv3 Free Software!\n"
-		"Code is available from <https://code.causal.agency/june/play>.\n"
+		"Code is available from <https://git.causal.agency/play>.\n"
 	);
 }
