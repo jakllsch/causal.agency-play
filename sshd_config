@@ -5,9 +5,5 @@ Match User play
 	PermitEmptyPasswords yes
 	ChrootDirectory /home/play
 	ForceCommand play
-
-	AllowAgentForwarding no
-	AllowTcpForwarding no
-	AllowStreamLocalForwarding no
+	DisableForwarding yes
 	MaxSessions 1
-	X11Forwarding no
