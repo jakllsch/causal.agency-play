@@ -175,14 +175,19 @@ static void input(void) {
 		ch = getch();
 		nodelay(stdscr, true);
 	}
+	int dy = head.dy;
+	int dx = head.dx;
 	switch (ch) {
-		break; case 'h': case KEY_LEFT:  head.dy =  0; head.dx = -1;
-		break; case 'j': case KEY_DOWN:  head.dy = +1; head.dx =  0;
-		break; case 'k': case KEY_UP:    head.dy = -1; head.dx =  0;
-		break; case 'l': case KEY_RIGHT: head.dy =  0; head.dx = +1;
+		break; case 'h': case KEY_LEFT:  dy =  0; dx = -1;
+		break; case 'j': case KEY_DOWN:  dy = +1; dx =  0;
+		break; case 'k': case KEY_UP:    dy = -1; dx =  0;
+		break; case 'l': case KEY_RIGHT: dy =  0; dx = +1;
 		break; case 'q': over = "You are satisfied.";
 		break; case ERR: exit(EXIT_FAILURE);
 	}
+	if (dy == -head.dy && dx == -head.dx) return;
+	head.dy = dy;
+	head.dx = dx;
 }
 
 uint playSnake(void) {
