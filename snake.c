@@ -159,7 +159,11 @@ static void draw(void) {
 		}
 	}
 	for (uint i = 0; i < snake.len; ++i) {
-		mvaddch(snake.y[i], snake.x[i], '#' | COLOR_PAIR(2));
+		if (i + 1 < snake.len) {
+			mvaddch(snake.y[i], snake.x[i], '#' | COLOR_PAIR(2));
+		} else {
+			mvaddch(snake.y[i], snake.x[i], '*' | COLOR_PAIR(2));
+		}
 	}
 	mvaddch(head.y, head.x, '@' | A_BOLD);
 	move(head.y, head.x);
