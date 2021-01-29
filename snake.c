@@ -213,8 +213,3 @@ uint playSnake(void) {
 	);
 	return score;
 }
-
-int main(void) {
-	playSnake();
-	endwin();
-}

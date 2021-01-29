@@ -7,8 +7,9 @@ LDLIBS = -lcurses
 
 -include config.mk
 
-OBJS += play.o
 OBJS += 2048.o
+OBJS += play.o
+OBJS += snake.o
 
 all: tags play
 

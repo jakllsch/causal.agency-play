@@ -30,9 +30,9 @@
 #include <sys/capsicum.h>
 #endif
 
-typedef unsigned uint;
+#define ARRAY_LEN(a) (sizeof(a) / sizeof((a)[0]))
 
-uint play2048(void);
+typedef unsigned uint;
 
 enum { ScoresLen = 1000 };
 static struct Score {
@@ -172,6 +172,54 @@ static void draw(const char *title, size_t new) {
 	move(newY, NameX);
 }
 
+typedef uint Play(void);
+uint play2048(void);
+uint playSnake(void);
+
+static const struct Game {
+	const char *name;
+	const char *title;
+	const char *desc;
+	Play *play;
+} Games[] = {
+	{ "2048", "2048", "Slide and merge matching tiles", play2048 },
+	{ "snake", "Snake", "Eat food before it spoils to become long", playSnake },
+};
+
+static const struct Game *menu(void) {
+	curse();
+	uint game = 0;
+	for (;;) {
+		for (uint i = 0; i < ARRAY_LEN(Games); ++i) {
+			attrset(i == game ? A_STANDOUT : A_NORMAL);
+			char buf[256];
+			snprintf(buf, sizeof(buf), "%u. %s", 1 + i, Games[i].title);
+			mvaddstr(1 + 3 * i, 2, buf);
+			attrset(A_NORMAL);
+			mvaddstr(2 + 3 * i, 2, Games[i].desc);
+		}
+		move(1 + 3 * game, 2);
+		int ch = getch();
+		switch (ch) {
+			break; case 'k': case KEY_UP: {
+				if (game) game--;
+			}
+			break; case 'j': case KEY_DOWN: {
+				if (game + 1 < ARRAY_LEN(Games)) game++;
+			}
+			break; case '1' ... '9': {
+				if (ch - '1' < (int)ARRAY_LEN(Games)) game = ch - '1';
+			}
+			break; case '\r': case '\n': case KEY_ENTER: {
+				return &Games[game];
+			}
+			break; case 'q': {
+				return NULL;
+			}
+		}
+	}
+}
+
 int main(int argc, char *argv[]) {
 	const char *path = NULL;
 
@@ -196,9 +244,15 @@ int main(int argc, char *argv[]) {
 		return EX_OK;
 	}
 
-	curse();
-	FILE *top = scoresOpen("2048.scores");
-	FILE *weekly = scoresOpen("2048.weekly");
+	const struct Game *game = menu();
+	if (!game) goto done;
+	erase();
+
+	char buf[256];
+	snprintf(buf, sizeof(buf), "%s.scores", game->name);
+	FILE *top = scoresOpen(buf);
+	snprintf(buf, sizeof(buf), "%s.weekly", game->name);
+	FILE *weekly = scoresOpen(buf);
 
 #ifdef __FreeBSD__
 	int error = cap_enter();
@@ -216,7 +270,7 @@ int main(int argc, char *argv[]) {
 
 	struct Score new = {
 		.date = time(NULL),
-		.score = play2048(),
+		.score = game->play(),
 	};
 
 	curse();
@@ -262,6 +316,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	getch();
+done:
 	endwin();
 	printf(
 		"This program is AGPLv3 Free Software!\n"
