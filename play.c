@@ -247,6 +247,9 @@ int main(int argc, char *argv[]) {
 	const struct Game *game = menu();
 	if (!game) goto done;
 	erase();
+#ifdef __FreeBSD__
+	setproctitle("%s", game->name);
+#endif
 
 	char buf[256];
 	snprintf(buf, sizeof(buf), "%s.scores", game->name);
