@@ -205,7 +205,12 @@ uint playSnake(void) {
 	draw();
 	while (ERR != getch());
 	nodelay(stdscr, false);
-	getch();
+	int ch;
+	do {
+		ch = getch();
+	} while (
+		ch == KEY_LEFT || ch == KEY_DOWN || ch == KEY_UP || ch == KEY_RIGHT
+	);
 	return score;
 }
 
