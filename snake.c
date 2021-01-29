@@ -187,6 +187,13 @@ static void input(void) {
 		break; case 'k': case KEY_UP:    dy = -1; dx =  0;
 		break; case 'l': case KEY_RIGHT: dy =  0; dx = +1;
 		break; case 'q': over = "You are satisfied.";
+		break; case 'p': case ' ': {
+			nodelay(stdscr, false);
+			do {
+				ch = getch();
+			} while (ch != ERR && ch != 'p' && ch != ' ');
+			nodelay(stdscr, true);
+		}
 		break; case ERR: exit(EXIT_FAILURE);
 	}
 	if (dy == -head.dy && dx == -head.dx) return;
