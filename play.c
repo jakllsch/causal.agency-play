@@ -216,6 +216,7 @@ static const struct Game *menu(void) {
 			break; case 'q': {
 				return NULL;
 			}
+			break; case ERR: exit(EXIT_FAILURE);
 		}
 	}
 }
