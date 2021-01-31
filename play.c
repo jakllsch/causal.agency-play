@@ -187,7 +187,10 @@ static const struct Game {
 };
 
 static const struct Game *menu(void) {
-	curse();
+	const char *cmd = getenv("SSH_ORIGINAL_COMMAND");
+	for (uint i = 0; cmd && i < ARRAY_LEN(Games); ++i) {
+		if (!strcmp(Games[i].name, cmd)) return &Games[i];
+	}
 	uint game = 0;
 	for (;;) {
 		for (uint i = 0; i < ARRAY_LEN(Games); ++i) {
@@ -245,6 +248,7 @@ int main(int argc, char *argv[]) {
 		return EX_OK;
 	}
 
+	curse();
 	const struct Game *game = menu();
 	if (!game) goto done;
 	erase();
