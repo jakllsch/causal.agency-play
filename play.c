@@ -248,7 +248,11 @@ int main(int argc, char *argv[]) {
 		return EX_OK;
 	}
 
+	if (!isatty(STDOUT_FILENO)) {
+		errx(EX_USAGE, "not a tty; use ssh -t");
+	}
 	curse();
+
 	const struct Game *game = menu();
 	if (!game) goto done;
 	erase();
