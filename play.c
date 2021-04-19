@@ -17,6 +17,7 @@
 #include <curses.h>
 #include <err.h>
 #include <fcntl.h>
+#include <locale.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -195,6 +196,7 @@ static void draw(const char *title, size_t new) {
 typedef uint Play(void);
 uint play2048(void);
 uint playSnake(void);
+uint playFreeCell(void);
 
 static const struct Game {
 	const char *name;
@@ -210,6 +212,10 @@ static const struct Game {
 	{
 		"snake", "Snake", "Eat food before it spoils to become long",
 		playSnake, false,
+	},
+	{
+		"freecell", "FreeCell", "Sort cards like it's 1995",
+		playFreeCell, true,
 	},
 };
 
@@ -251,11 +257,20 @@ static const struct Game *menu(void) {
 	}
 }
 
-int main(int argc, char *argv[]) {
-	const char *path = NULL;
+static void info(void) {
+	endwin();
+	printf(
+		"This program is AGPLv3 Free Software!\n"
+		"Code is available from <https://git.causal.agency/play>.\n"
+	);
+}
 
-	int opt;
-	while (0 < (opt = getopt(argc, argv, "t:"))) {
+int main(int argc, char *argv[]) {
+	setlocale(LC_CTYPE, "");
+	atexit(info);
+
+	const char *path = NULL;
+	for (int opt; 0 < (opt = getopt(argc, argv, "t:"));) {
 		switch (opt) {
 			break; case 't': path = optarg;
 			break; default:  return EX_USAGE;
@@ -281,7 +296,7 @@ int main(int argc, char *argv[]) {
 	curse();
 
 	const struct Game *game = menu();
-	if (!game) goto done;
+	if (!game) return 0;
 	erase();
 #ifdef __FreeBSD__
 	setproctitle("%s", game->name);
@@ -373,10 +388,4 @@ int main(int argc, char *argv[]) {
 	}
 
 	getch();
-done:
-	endwin();
-	printf(
-		"This program is AGPLv3 Free Software!\n"
-		"Code is available from <https://git.causal.agency/play>.\n"
-	);
 }

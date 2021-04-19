@@ -8,6 +8,7 @@ LDLIBS = -lcurses
 -include config.mk
 
 OBJS += 2048.o
+OBJS += freecell.o
 OBJS += play.o
 OBJS += snake.o
 
