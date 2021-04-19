@@ -1,4 +1,4 @@
-/* Copyright (C) 2018  C. McEnroe <june@causal.agency>
+/* Copyright (C) 2018, 2021  C. McEnroe <june@causal.agency>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU Affero General Public License as published by
@@ -79,6 +79,26 @@ static size_t scoresInsert(struct Score new) {
 		return i;
 	}
 	return ScoresLen;
+}
+
+static size_t scoresAccum(struct Score acc) {
+	if (!acc.score) return ScoresLen;
+	for (size_t i = 0; i < ScoresLen; ++i) {
+		if (strcmp(scores[i].name, acc.name)) continue;
+		scores[i].date = acc.date;
+		scores[i].score += acc.score;
+		while (i && scores[i-1].score < scores[i].score) {
+			acc = scores[i];
+			scores[i] = scores[i-1];
+			scores[--i] = acc;
+		}
+		return i;
+	}
+	size_t index = scoresInsert(acc);
+	if (index < ScoresLen) return index;
+	index = ScoresLen - 1;
+	scores[index] = acc;
+	return index;
 }
 
 static void curse(void) {
@@ -181,9 +201,16 @@ static const struct Game {
 	const char *title;
 	const char *desc;
 	Play *play;
+	bool cum;
 } Games[] = {
-	{ "2048", "2048", "Slide and merge matching tiles", play2048 },
-	{ "snake", "Snake", "Eat food before it spoils to become long", playSnake },
+	{
+		"2048", "2048", "Slide and merge matching tiles",
+		play2048, false,
+	},
+	{
+		"snake", "Snake", "Eat food before it spoils to become long",
+		playSnake, false,
+	},
 };
 
 static const struct Game *menu(void) {
@@ -289,6 +316,10 @@ int main(int argc, char *argv[]) {
 
 	scoresRead(weekly);
 	size_t index = scoresInsert(new);
+	if (game->cum && index == ScoresLen && new.score) {
+		index = ScoresLen - 1;
+		scores[index] = new;
+	}
 	draw("WEEKLY SCORES", index);
 
 	if (index < ScoresLen) {
@@ -305,24 +336,38 @@ int main(int argc, char *argv[]) {
 
 		scoresLock(weekly);
 		scoresRead(weekly);
-		scoresInsert(new);
+		if (game->cum) {
+			index = scoresAccum(new);
+		} else {
+			index = scoresInsert(new);
+		}
 		scoresWrite(weekly);
 		fclose(weekly);
 	}
-
 	noecho();
 	curs_set(0);
+
+	erase();
+	draw("WEEKLY SCORES", index);
 	getch();
 	erase();
 
 	scoresRead(top);
-	index = scoresInsert(new);
+	if (game->cum) {
+		index = scoresAccum(new);
+	} else {
+		index = scoresInsert(new);
+	}
 	draw("TOP SCORES", index);
 
 	if (index < ScoresLen) {
 		scoresLock(top);
 		scoresRead(top);
-		scoresInsert(new);
+		if (game->cum) {
+			scoresAccum(new);
+		} else {
+			scoresInsert(new);
+		}
 		scoresWrite(top);
 		fclose(top);
 	}
