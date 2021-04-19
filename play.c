@@ -266,7 +266,7 @@ static void info(void) {
 }
 
 int main(int argc, char *argv[]) {
-	setlocale(LC_CTYPE, "");
+	setlocale(LC_CTYPE, "en_US.UTF-8");
 	atexit(info);
 
 	const char *path = NULL;

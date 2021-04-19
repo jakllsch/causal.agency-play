@@ -3,7 +3,7 @@ CHROOT_GROUP = ${CHROOT_USER}
 
 CFLAGS += -std=c11 -Wall -Wextra
 LDFLAGS = -static
-LDLIBS = -lcurses
+LDLIBS = -lcursesw
 
 -include config.mk
 
@@ -25,8 +25,10 @@ chroot.tar: play
 		root \
 		root/bin \
 		root/home \
+		root/usr/share/locale \
 		root/usr/share/misc
 	install -d -o ${CHROOT_USER} -g ${CHROOT_GROUP} root/home/${CHROOT_USER}
+	cp -LRfp /usr/share/locale/en_US.UTF-8 root/usr/share/locale
 	cp -fp /usr/share/misc/termcap.db root/usr/share/misc
 	cp -fp /rescue/sh root/bin
 	install play root/bin
