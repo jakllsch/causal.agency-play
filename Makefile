@@ -28,9 +28,16 @@ chroot.tar: play
 		root/usr/share/locale \
 		root/usr/share/misc
 	install -d -o ${CHROOT_USER} -g ${CHROOT_GROUP} root/home/${CHROOT_USER}
-	cp -LRfp /usr/share/locale/en_US.UTF-8 root/usr/share/locale
-	cp -fp /usr/share/misc/termcap.db root/usr/share/misc
-	cp -fp /rescue/sh root/bin
+	if test -e /usr/share/locale/UTF-8; then \
+		cp -af /usr/share/locale/UTF-8 root/usr/share/locale; fi
+	if test -e /usr/share/locale/en_US.UTF-8; then \
+		cp -LRfp /usr/share/locale/en_US.UTF-8 root/usr/share/locale; fi
+	if test -e /usr/share/terminfo; then \
+		cp -af /usr/share/terminfo root/usr/share; fi
+	if test -e /usr/share/misc/termcap.db; then \
+		cp -fp /usr/share/misc/termcap.db root/usr/share/misc; fi
+	if test -e /rescue/sh; then \
+		cp -fp /rescue/sh root/bin; else cp -fp /bin/sh root/bin; fi
 	install play root/bin
 	tar -c -f chroot.tar -C root bin home usr
 
