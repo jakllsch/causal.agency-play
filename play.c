@@ -295,10 +295,18 @@ int main(int argc, char *argv[]) {
 	curse();
 	atexit(info);
 
+#ifdef __OpenBSD__
+	int error = unveil(".", "rwc");
+	if (error) err(EX_OSERR, "unveil");
+
+	error = pledge("stdio tty rpath wpath cpath flock", NULL);
+	if (error) err(EX_OSERR, "pledge");
+#endif
+
 	const struct Game *game = menu();
 	if (!game) return 0;
 	erase();
-#ifdef __FreeBSD__
+#if defined(__FreeBSD__) || defined(__OpenBSD__)
 	setproctitle("%s", game->name);
 #endif
 
@@ -307,6 +315,11 @@ int main(int argc, char *argv[]) {
 	FILE *top = scoresOpen(buf);
 	snprintf(buf, sizeof(buf), "%s.weekly", game->name);
 	FILE *weekly = scoresOpen(buf);
+
+#ifdef __OpenBSD__
+	error = pledge("stdio tty flock", NULL);
+	if (error) err(EX_OSERR, "pledge");
+#endif
 
 #ifdef __FreeBSD__
 	int error = cap_enter();
