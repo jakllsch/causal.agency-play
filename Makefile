@@ -16,7 +16,7 @@ OBJS += play.o
 OBJS += snake.o
 OBJS += portable-lib/src/arc4random.o
 
-all: tags play
+all: play
 
 play: ${OBJS}
 	${CC} ${LDFLAGS} ${OBJS} ${LDLIBS} -o $@
