@@ -45,4 +45,4 @@ clean:
 	rm -fr play ${OBJS} tags chroot.tar root
 
 install: chroot.tar
-	tar -x -f chroot.tar -C /home/${CHROOT_USER}
+	tar -px -f chroot.tar -C /home/${CHROOT_USER}
