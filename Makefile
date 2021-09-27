@@ -1,8 +1,11 @@
 CHROOT_USER = play
 CHROOT_GROUP = ${CHROOT_USER}
 
-CFLAGS += -std=c11 -Wall -Wextra
-LDFLAGS = -static
+
+CFLAGS += -Iportable-lib/inc
+
+CFLAGS += -std=gnu11 -Wall -Wextra
+#LDFLAGS = -static
 LDLIBS = -lncursesw
 
 -include config.mk
@@ -11,6 +14,7 @@ OBJS += 2048.o
 OBJS += freecell.o
 OBJS += play.o
 OBJS += snake.o
+OBJS += portable-lib/src/arc4random.o
 
 all: tags play
 

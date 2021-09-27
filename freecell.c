@@ -24,6 +24,8 @@
 #include <time.h>
 #include <unistd.h>
 
+#include <utils/arc4random.h>
+
 typedef unsigned uint;
 typedef unsigned char byte;
 
